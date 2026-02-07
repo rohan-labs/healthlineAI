@@ -19,7 +19,7 @@ export default function OverviewPage() {
                     <CardHeader>
                         <CardTitle className="text-3xl">
                             {isOSSMode ? (
-                                "Welcome to Dograh"
+                                "Welcome to Healthline"
                             ) : (
                                 `Welcome${user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}!`
                             )}
@@ -27,27 +27,14 @@ export default function OverviewPage() {
                         <CardDescription className="text-lg mt-2">
                             {isOSSMode ? (
                                 <>
-                                    Open source alternative to Vapi. Help us support the project by giving us a star on GitHub.
+                                    Medical AI voice assistant platform for healthcare professionals.
                                 </>
                             ) : (
-                                "Get started with building voice AI workflows"
+                                "Get started with building medical AI voice workflows"
                             )}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {isOSSMode && (
-                            <Button asChild className="mb-6">
-                                <a
-                                    href="https://github.com/dograh-hq/dograh"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center"
-                                >
-                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                    Star us on GitHub
-                                </a>
-                            </Button>
-                        )}
                     </CardContent>
                 </Card>
 
@@ -91,7 +78,7 @@ export default function OverviewPage() {
                     <CardHeader>
                         <CardTitle>Resources</CardTitle>
                         <CardDescription>
-                            Get help and learn more about Dograh
+                            Get help and learn more about Healthline
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

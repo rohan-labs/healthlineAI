@@ -282,7 +282,7 @@ export default function ConfigureTelephonyPage() {
                 <CardDescription>
                   {selectedProvider === "cloudonix" ? (
                     <>
-                      Cloudonix is an AI Connectivity platform, enabling you to connect Dograh to any SIP product or SIP Telephony Provider.<br/><br/>
+                      Cloudonix is an AI Connectivity platform, enabling you to connect Healthline to any SIP product or SIP Telephony Provider.<br/><br/>
                       <iframe
                         style={{ border: 0 }}
                         width="100%"
@@ -325,20 +325,39 @@ export default function ConfigureTelephonyPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {selectedProvider === "twilio" || selectedProvider === "vonage" ? (
-                  <div className="aspect-video">
-                    <iframe
-                      style={{ border: 0 }}
-                      width="100%"
-                      height="100%"
-                      src={
-                        selectedProvider === "twilio"
-                          ? "https://www.tella.tv/video/cmgbvzkrt00jk0clacu16blm3/embed?b=0&title=1&a=1&loop=0&t=0&muted=0&wt=0"
-                          : "https://www.tella.tv/video/configuring-telephony-on-dograh-with-vonage-3wvo/embed?b=0&title=1&a=1&loop=0&t=0&muted=0&wt=0"
-                      }
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    />
+                {selectedProvider === "twilio" ? (
+                  <div className="space-y-4 text-sm">
+                    <div>
+                      <h4 className="font-semibold mb-2">Getting Started with Twilio:</h4>
+                      <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                        <li>Sign up for a Twilio account at https://www.twilio.com</li>
+                        <li>Get your Account SID and Auth Token from the Twilio Console</li>
+                        <li>Purchase a phone number in Twilio</li>
+                        <li>Configure your Twilio credentials below</li>
+                      </ol>
+                    </div>
+                    <div className="bg-muted border border-border rounded p-3">
+                      <p className="text-sm">
+                        <strong>Note:</strong> Twilio provides reliable cloud communications for voice and messaging.
+                      </p>
+                    </div>
+                  </div>
+                ) : selectedProvider === "vonage" ? (
+                  <div className="space-y-4 text-sm">
+                    <div>
+                      <h4 className="font-semibold mb-2">Getting Started with Vonage:</h4>
+                      <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                        <li>Sign up for a Vonage account at https://www.vonage.com</li>
+                        <li>Get your API Key and API Secret from the Vonage Dashboard</li>
+                        <li>Purchase a virtual number</li>
+                        <li>Configure your Vonage credentials below</li>
+                      </ol>
+                    </div>
+                    <div className="bg-muted border border-border rounded p-3">
+                      <p className="text-sm">
+                        <strong>Note:</strong> Vonage offers global voice and messaging services.
+                      </p>
+                    </div>
                   </div>
                 ) : selectedProvider === "vobiz" ? (
                   <div className="space-y-4 text-sm">
@@ -366,8 +385,8 @@ export default function ConfigureTelephonyPage() {
                       <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
                         <li>Sign up for a Cloudonix account at https://cloudonix.com</li>
                         <li>Create an <i>API token</i> for your Cloudonix domain</li>
-                        <li>Configure your Cloudoinx <i>API Token</i> and <i>Cloudonix Domain Name</i> in Dograh</li>
-                        <li>Configure an optional outbound phone number for your Dograh agent</li>
+                        <li>Configure your Cloudoinx <i>API Token</i> and <i>Cloudonix Domain Name</i> in Healthline</li>
+                        <li>Configure an optional outbound phone number for your Healthline agent</li>
                       </ol>
                     </div>
                     <div className="bg-muted border border-border rounded p-3">
@@ -779,19 +798,6 @@ export default function ConfigureTelephonyPage() {
                     >
                       {isLoading ? "Saving..." : "Save Configuration"}
                     </Button>
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">
-                        Configure inbound calling?{" "}
-                        <a
-                          href="https://docs.dograh.com/integrations/telephony/inbound"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          View documentation
-                        </a>
-                      </p>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
