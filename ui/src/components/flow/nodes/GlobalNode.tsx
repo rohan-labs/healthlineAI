@@ -79,7 +79,7 @@ export const GlobalNode = memo(({ data, selected, id }: GlobalNodeProps) => {
                 invalid={data.invalid}
                 selected_through_edge={data.selected_through_edge}
                 hovered_through_edge={data.hovered_through_edge}
-                title={data.name || 'Global'}
+                title={data.name || 'Practice-Wide Instructions'}
                 icon={<Headset />}
                 nodeType="global"
                 onDoubleClick={() => setOpen(true)}
@@ -105,7 +105,7 @@ export const GlobalNode = memo(({ data, selected, id }: GlobalNodeProps) => {
                 open={open}
                 onOpenChange={handleOpenChange}
                 nodeData={data}
-                title="Edit Global Node"
+                title="Edit Practice-Wide Instructions"
                 onSave={handleSave}
                 isDirty={isDirty}
             >
@@ -133,16 +133,17 @@ const GlobalNodeEditForm = ({
         <div className="grid gap-2">
             <Label>Name</Label>
             <Label className="text-xs text-muted-foreground">
-                The name of the global node.
+                A name for these practice-wide instructions. Example: &quot;Practice Info&quot; or &quot;Standard Guidelines&quot;.
             </Label>
             <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Practice Information"
             />
 
-            <Label>Prompt</Label>
+            <Label>Instructions</Label>
             <Label className="text-xs text-muted-foreground">
-                This is the global prompt. This will be added to the system prompt of all the agents.
+                Instructions that apply to every call. Include your practice name, office hours, or standard policies.
             </Label>
             <Textarea
                 value={prompt}
@@ -151,6 +152,7 @@ const GlobalNodeEditForm = ({
                 style={{
                     overflowY: 'auto'
                 }}
+                placeholder="e.g., You are calling from ABC Medical Center. Our office hours are Monday-Friday 9am-5pm. Always be professional and empathetic."
             />
         </div>
     );

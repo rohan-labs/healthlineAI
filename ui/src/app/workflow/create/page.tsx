@@ -1,11 +1,22 @@
 'use client';
 
+import { Layers, PenTool, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
-import { createWorkflowFromTemplateApiV1WorkflowCreateTemplatePost, createWorkflowRunApiV1WorkflowWorkflowIdRunsPost } from '@/client/sdk.gen';
+import {
+    createWorkflowFromTemplateApiV1WorkflowCreateTemplatePost,
+    createWorkflowRunApiV1WorkflowWorkflowIdRunsPost,
+} from '@/client/sdk.gen';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -16,8 +27,15 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { TemplateSelector } from '@/components/workflow/TemplateSelector';
 import { WORKFLOW_RUN_MODES } from '@/constants/workflowRunModes';
 import { useAuth } from '@/lib/auth';
 import logger from '@/lib/logger';
@@ -31,14 +49,32 @@ export default function CreateWorkflowPage() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [workflowId, setWorkflowId] = useState<string | null>(null);
 
+    const [creationMode, setCreationMode] = useState<'ai' | 'scratch' | 'template'>('ai');
     const [callType, setCallType] = useState<'inbound' | 'outbound'>('inbound');
+    const [workflowName, setWorkflowName] = useState('');
     const [useCase, setUseCase] = useState('');
     const [activityDescription, setActivityDescription] = useState('');
 
+    // Check URL params on mount to pre-select mode
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        if (mode === 'scratch' || mode === 'ai' || mode === 'template') {
+            setCreationMode(mode as 'ai' | 'scratch' | 'template');
+        }
+    }, []);
+
     const handleCreateWorkflow = async () => {
-        if (!useCase || !activityDescription) {
-            setError('Please fill in all fields');
-            return;
+        if (creationMode === 'ai') {
+            if (!useCase || !activityDescription) {
+                setError('Please fill in all fields');
+                return;
+            }
+        } else {
+            if (!workflowName.trim()) {
+                setError('Please enter a workflow name');
+                return;
+            }
         }
 
         if (!user) {
@@ -46,6 +82,19 @@ export default function CreateWorkflowPage() {
             return;
         }
 
+        // For scratch mode, navigate directly to builder without backend call
+        if (creationMode === 'scratch') {
+            const params = new URLSearchParams({
+                mode: 'scratch',
+                callType: callType,
+                name: workflowName,
+            });
+            toast.success('Opening workflow builder...');
+            router.push(`/workflow/new?${params.toString()}`);
+            return;
+        }
+
+        // AI mode - call backend to generate workflow
         setIsLoading(true);
         setError(null);
 
@@ -65,7 +114,8 @@ export default function CreateWorkflowPage() {
             });
 
             if (response.data?.id) {
-                setWorkflowId(String(response.data.id));
+                const createdWorkflowId = String(response.data.id);
+                setWorkflowId(createdWorkflowId);
                 setShowSuccessModal(true);
             }
         } catch (err) {
@@ -114,17 +164,67 @@ export default function CreateWorkflowPage() {
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold mb-2">Create Voice Agent</h1>
                     <p className="text-muted-foreground">
-                        Tell us about your use case and we&apos;ll create a customized voice agent for you
+                        {creationMode === 'ai'
+                            ? "Tell us about your use case and we'll create a customized voice agent for you"
+                            : creationMode === 'template'
+                            ? 'Choose a pre-built healthcare workflow template and customize it for your practice'
+                            : 'Start with a basic template and build your workflow step-by-step'}
                     </p>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Agent Details</CardTitle>
-                        <CardDescription>
-                            Configure your voice agent settings
-                        </CardDescription>
-                    </CardHeader>
+                {/* Creation Mode Selection */}
+                <div className="flex gap-4 mb-6">
+                    <Button
+                        variant={creationMode === 'ai' ? 'default' : 'outline'}
+                        onClick={() => setCreationMode('ai')}
+                        className="flex-1"
+                    >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        AI-Generated
+                    </Button>
+                    <Button
+                        variant={creationMode === 'template' ? 'default' : 'outline'}
+                        onClick={() => setCreationMode('template')}
+                        className="flex-1"
+                    >
+                        <Layers className="mr-2 h-4 w-4" />
+                        Use Template
+                    </Button>
+                    <Button
+                        variant={creationMode === 'scratch' ? 'default' : 'outline'}
+                        onClick={() => setCreationMode('scratch')}
+                        className="flex-1"
+                    >
+                        <PenTool className="mr-2 h-4 w-4" />
+                        Start from Scratch
+                    </Button>
+                </div>
+
+                {creationMode === 'template' ? (
+                    <div className="space-y-4">
+                        <TemplateSelector
+                            onSelect={(template) => {
+                                const params = new URLSearchParams({
+                                    mode: 'template',
+                                    templateId: template.id,
+                                    callType: template.configurations?.call_type || 'inbound',
+                                    name: template.name,
+                                });
+                                toast.success('Loading template...');
+                                router.push(`/workflow/new?${params.toString()}`);
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Agent Details</CardTitle>
+                            <CardDescription>
+                                {creationMode === 'ai'
+                                    ? 'Configure your voice agent settings'
+                                    : 'Provide basic information to create a blank workflow'}
+                            </CardDescription>
+                        </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="call-type">Call Type</Label>
@@ -146,32 +246,49 @@ export default function CreateWorkflowPage() {
                             </p>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="use-case">Use Case</Label>
-                            <Input
-                                id="use-case"
-                                placeholder="e.g., Lead Qualification, HR Screening, Customer Support"
-                                value={useCase}
-                                onChange={(e) => setUseCase(e.target.value)}
-                            />
-                            <p className="text-sm text-muted-foreground">
-                                Describe the primary purpose of your voice agent
-                            </p>
-                        </div>
+                        {creationMode === 'scratch' ? (
+                            <div className="space-y-2">
+                                <Label htmlFor="workflow-name">Workflow Name</Label>
+                                <Input
+                                    id="workflow-name"
+                                    placeholder="e.g., Customer Support Bot, Appointment Scheduler"
+                                    value={workflowName}
+                                    onChange={(e) => setWorkflowName(e.target.value)}
+                                />
+                                <p className="text-sm text-muted-foreground">
+                                    Give your workflow a descriptive name
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="use-case">Use Case</Label>
+                                    <Input
+                                        id="use-case"
+                                        placeholder="e.g., Lead Qualification, HR Screening, Customer Support"
+                                        value={useCase}
+                                        onChange={(e) => setUseCase(e.target.value)}
+                                    />
+                                    <p className="text-sm text-muted-foreground">
+                                        Describe the primary purpose of your voice agent
+                                    </p>
+                                </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="activity-description">Activity Description</Label>
-                            <Textarea
-                                id="activity-description"
-                                placeholder="Describe briefly what your voice agent will do (e.g., Qualify leads for real estate, Screen candidates for roles, Handle customer support). This will be a prompt to an LLM."
-                                value={activityDescription}
-                                onChange={(e) => setActivityDescription(e.target.value)}
-                                className="min-h-[100px]"
-                            />
-                            <p className="text-sm text-muted-foreground">
-                                This description will be used to generate the AI prompt for your voice agent
-                            </p>
-                        </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="activity-description">Activity Description</Label>
+                                    <Textarea
+                                        id="activity-description"
+                                        placeholder="Describe briefly what your voice agent will do (e.g., Qualify leads for real estate, Screen candidates for roles, Handle customer support). This will be a prompt to an LLM."
+                                        value={activityDescription}
+                                        onChange={(e) => setActivityDescription(e.target.value)}
+                                        className="min-h-[100px]"
+                                    />
+                                    <p className="text-sm text-muted-foreground">
+                                        This description will be used to generate the AI prompt for your voice agent
+                                    </p>
+                                </div>
+                            </>
+                        )}
 
                         {error && (
                             <p className="text-sm text-red-500">{error}</p>
@@ -180,14 +297,19 @@ export default function CreateWorkflowPage() {
                         <div className="pt-4">
                             <Button
                                 onClick={handleCreateWorkflow}
-                                disabled={isLoading || !useCase || !activityDescription}
+                                disabled={
+                                    isLoading ||
+                                    (creationMode === 'ai' && (!useCase || !activityDescription)) ||
+                                    (creationMode === 'scratch' && !workflowName.trim())
+                                }
                                 className="w-full"
                             >
-                                {isLoading ? 'Creating...' : 'Create Agent'}
+                                {isLoading ? 'Creating...' : creationMode === 'scratch' ? 'Create & Build Workflow' : 'Create Agent'}
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
+                )}
             </div>
 
             {/* Loading Overlay */}

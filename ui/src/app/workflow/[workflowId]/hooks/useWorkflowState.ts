@@ -9,9 +9,11 @@ import {
 import { EdgeChange, NodeChange } from "@xyflow/system";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 import { useWorkflowStore } from "@/app/workflow/[workflowId]/stores/workflowStore";
 import {
+    createWorkflowApiV1WorkflowCreateDefinitionPost,
     createWorkflowRunApiV1WorkflowWorkflowIdRunsPost,
     updateWorkflowApiV1WorkflowWorkflowIdPut,
     validateWorkflowApiV1WorkflowWorkflowIdValidatePost
@@ -244,6 +246,13 @@ export const useWorkflowState = ({
     // Validate workflow function
     const validateWorkflow = useCallback(async () => {
         if (!user) return;
+
+        // Skip validation for new workflows (not yet saved)
+        if (workflowId === 0) {
+            clearValidationErrors();
+            return;
+        }
+
         try {
             const accessToken = await getAccessToken();
             const response = await validateWorkflowApiV1WorkflowWorkflowIdValidatePost({
@@ -312,27 +321,52 @@ export const useWorkflowState = ({
         if (!user || !rfInstance.current) return;
         const flow = rfInstance.current.toObject();
         const accessToken = await getAccessToken();
+
         try {
-            await updateWorkflowApiV1WorkflowWorkflowIdPut({
-                path: {
-                    workflow_id: workflowId,
-                },
-                body: {
-                    name: workflowName,
-                    workflow_definition: updateWorkflowDefinition ? flow : null,
-                },
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                },
-            });
+            // Check if this is a new workflow (workflowId === 0)
+            if (workflowId === 0) {
+                // Create new workflow
+                const response = await createWorkflowApiV1WorkflowCreateDefinitionPost({
+                    body: {
+                        name: workflowName,
+                        workflow_definition: flow,
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                });
+
+                if (response.data?.id) {
+                    // Navigate to the new workflow URL with the real ID
+                    toast.success('Workflow created successfully!');
+                    router.push(`/workflow/${response.data.id}`);
+                }
+            } else {
+                // Update existing workflow
+                await updateWorkflowApiV1WorkflowWorkflowIdPut({
+                    path: {
+                        workflow_id: workflowId,
+                    },
+                    body: {
+                        name: workflowName,
+                        workflow_definition: updateWorkflowDefinition ? flow : null,
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                });
+            }
             setIsDirty(false);
         } catch (error) {
             logger.error(`Error saving workflow: ${error}`);
+            toast.error('Failed to save workflow. Please try again.');
         }
 
-        // Validate after saving
-        await validateWorkflow();
-    }, [workflowId, workflowName, setIsDirty, user, getAccessToken, validateWorkflow]);
+        // Validate after saving (only for existing workflows)
+        if (workflowId !== 0) {
+            await validateWorkflow();
+        }
+    }, [workflowId, workflowName, setIsDirty, user, getAccessToken, validateWorkflow, router]);
 
     // Set up keyboard shortcut for save (Cmd/Ctrl + S)
     useEffect(() => {
@@ -385,6 +419,13 @@ export const useWorkflowState = ({
 
     const onRun = async (mode: string) => {
         if (!user) return;
+
+        // Check if this is a new workflow that hasn't been saved yet
+        if (workflowId === 0) {
+            toast.error('Please save the workflow before running it.');
+            return;
+        }
+
         const workflowRunName = `WR-${getRandomId()}`;
         const accessToken = await getAccessToken();
         const response = await createWorkflowRunApiV1WorkflowWorkflowIdRunsPost({

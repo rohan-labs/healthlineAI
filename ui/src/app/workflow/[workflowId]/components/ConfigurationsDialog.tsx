@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { AmbientNoiseConfiguration, TurnStopStrategy, WorkflowConfigurations } from "@/types/workflow-configurations";
+import { FieldHelpTooltip } from "@/components/workflow/FieldHelpTooltip";
 
 interface ConfigurationsDialogProps {
     open: boolean;
@@ -109,17 +110,24 @@ export const ConfigurationsDialog = ({
                     {/* Ambient Noise Section */}
                     <div className="space-y-4">
                         <div>
-                            <h3 className="text-sm font-semibold mb-1">Ambient Noise</h3>
+                            <h3 className="text-sm font-semibold mb-1">Background Sound</h3>
                             <p className="text-xs text-muted-foreground">
-                                Add background office ambient noise to make the conversation sound more natural.
+                                Add background office sounds to make calls feel more natural, like a real office environment.
                             </p>
                         </div>
 
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="ambient-noise-enabled" className="text-sm">
-                                    Use Ambient Noise
-                                </Label>
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="ambient-noise-enabled" className="text-sm">
+                                        Use Background Sound
+                                    </Label>
+                                    <FieldHelpTooltip
+                                        title="What is background sound?"
+                                        description="Adds subtle office sounds (like keyboard typing or distant chatter) to make the AI sound like it's calling from a real medical office."
+                                        example="Patients hear soft background sounds that make the call feel more natural and professional."
+                                    />
+                                </div>
                                 <Switch
                                     id="ambient-noise-enabled"
                                     checked={ambientNoiseConfig.enabled}
@@ -156,43 +164,50 @@ export const ConfigurationsDialog = ({
                     {/* Turn Detection Section */}
                     <div className="space-y-4">
                         <div>
-                            <h3 className="text-sm font-semibold mb-1">Turn Detection</h3>
+                            <h3 className="text-sm font-semibold mb-1">When to Stop Listening</h3>
                             <p className="text-xs text-muted-foreground">
-                                Configure how the agent detects when the user has finished speaking.
+                                Choose how the AI knows when the patient has finished speaking.
                             </p>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="turn_stop_strategy" className="text-xs">
-                                Detection Strategy
-                            </Label>
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="turn_stop_strategy" className="text-xs">
+                                    Detection Method
+                                </Label>
+                                <FieldHelpTooltip
+                                    title="When should the AI respond?"
+                                    description="This controls how the AI knows when the patient has finished speaking. 'Natural Pauses' works better for most healthcare conversations."
+                                    example="With 'Natural Pauses', if a patient says 'I've been having headaches... um... for about a week', the AI waits for them to finish thinking instead of interrupting."
+                                />
+                            </div>
                             <Select
                                 value={turnStopStrategy}
                                 onValueChange={(value: TurnStopStrategy) => setTurnStopStrategy(value)}
                             >
                                 <SelectTrigger id="turn_stop_strategy">
-                                    <SelectValue placeholder="Select strategy" />
+                                    <SelectValue placeholder="Select method" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="transcription">
-                                        Transcription-based
+                                        Detect Short Responses
                                     </SelectItem>
                                     <SelectItem value="turn_analyzer">
-                                        Smart Turn Analyzer
+                                        Detect Natural Pauses (Recommended)
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-muted-foreground">
                                 {turnStopStrategy === 'transcription'
-                                    ? "Best for short responses (1-2 word statements). Ends turn when transcription indicates completion."
-                                    : "Best for longer responses with natural pauses. Uses ML model to detect end of turn."}
+                                    ? "Best for quick yes/no answers. The AI responds as soon as it detects a complete sentence."
+                                    : "Best for detailed patient responses. The AI waits for natural pauses in conversation before responding."}
                             </p>
                         </div>
 
                         {turnStopStrategy === 'turn_analyzer' && (
                             <div className="space-y-2">
                                 <Label htmlFor="smart_turn_stop_secs" className="text-xs">
-                                    Incomplete Turn Timeout (seconds)
+                                    Pause Duration (seconds)
                                 </Label>
                                 <Input
                                     id="smart_turn_stop_secs"
@@ -209,7 +224,7 @@ export const ConfigurationsDialog = ({
                                     }}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Max silence duration before ending an incomplete turn. Default: 2 seconds
+                                    How long the patient can pause before the AI responds. Default: 2 seconds
                                 </p>
                             </div>
                         )}
@@ -247,7 +262,7 @@ export const ConfigurationsDialog = ({
 
                             <div className="space-y-2">
                                 <Label htmlFor="max_user_idle_timeout" className="text-xs">
-                                    Max User Idle Timeout (seconds)
+                                    Silence Before Moving On (seconds)
                                 </Label>
                                 <Input
                                     id="max_user_idle_timeout"
@@ -262,7 +277,7 @@ export const ConfigurationsDialog = ({
                                         }
                                     }}
                                 />
-                                <p className="text-xs text-muted-foreground">Default: 10 seconds</p>
+                                <p className="text-xs text-muted-foreground">How long to wait if the patient doesn&apos;t respond. Default: 10 seconds</p>
                             </div>
                         </div>
                     </div>

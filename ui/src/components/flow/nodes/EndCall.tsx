@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { FieldHelpTooltip } from "@/components/workflow/FieldHelpTooltip";
 
 import { NodeContent } from "./common/NodeContent";
 import { NodeEditDialog } from "./common/NodeEditDialog";
@@ -206,13 +207,13 @@ const EndCallEditForm = ({
         <div className="grid gap-2">
             <Label>Name</Label>
             <Label className="text-xs text-muted-foreground">
-                The name of the agent that will be used to identify the agent in the call logs. It should be short and should identify the step in the call.
+                A short name to identify this step in call logs. Example: &quot;Closing&quot; or &quot;Thank You&quot;.
             </Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Thank You & Goodbye" />
 
-            <Label>Prompt</Label>
+            <Label>What to Say</Label>
             <Label className="text-xs text-muted-foreground">
-                Enter the prompt for the agent. This will be used to generate the agent&apos;s response. Prompt engineering&apos;s best practices apply.
+                Write how the AI should close the call. Thank the patient and provide next steps or contact information.
             </Label>
             <Textarea
                 value={prompt}
@@ -221,48 +222,63 @@ const EndCallEditForm = ({
                 style={{
                     overflowY: 'auto'
                 }}
-                placeholder="Enter a dynamic prompt"
+                placeholder="e.g., Thank you! We'll see you on {{appointment_date}}. If you need to reach us, call {{office_phone}}. Goodbye!"
             />
             <div className="flex items-center space-x-2">
                 <Switch id="add-global-prompt" checked={addGlobalPrompt} onCheckedChange={setAddGlobalPrompt} />
-                <Label htmlFor="add-global-prompt">Add Global Prompt</Label>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="add-global-prompt">Include Practice-Wide Instructions</Label>
+                    <FieldHelpTooltip
+                        title="What is this?"
+                        description="Automatically includes instructions from your Practice-Wide Instructions node in the closing message."
+                        example="If your Practice-Wide node includes standard closing policies, those will be included here."
+                    />
+                </div>
                 <Label className="text-xs text-muted-foreground">
-                    Whether you want to add global prompt with this node&apos;s prompt.
+                    Includes practice policies in closing.
                 </Label>
             </div>
 
             {/* Variable Extraction Section */}
             <div className="flex items-center space-x-2 pt-2">
                 <Switch id="enable-extraction" checked={extractionEnabled} onCheckedChange={setExtractionEnabled} />
-                <Label htmlFor="enable-extraction">Enable Variable Extraction</Label>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="enable-extraction">Collect Information from Patient</Label>
+                    <FieldHelpTooltip
+                        title="What is this?"
+                        description="Use this to collect any final information before ending the call. This is useful for capturing last-minute questions or concerns."
+                        example="Collect whether the patient mentioned any follow-up needs or additional questions they want answered."
+                    />
+                </div>
                 <Label className="text-xs text-muted-foreground ml-2">
-                    Are there any variables you would like to extract from the conversation?
+                    Save final questions or concerns.
                 </Label>
             </div>
 
             {extractionEnabled && (
                 <div className="border rounded-md p-3 mt-2 space-y-2 bg-muted/20">
-                    <Label>Extraction Prompt</Label>
+                    <Label>What to Ask For</Label>
                     <Label className="text-xs text-muted-foreground">
-                        Provide an overall extraction prompt that guides how variables should be extracted from the conversation.
+                        Describe what final information you want to collect before ending the call.
                     </Label>
                     <Textarea
                         value={extractionPrompt}
                         onChange={(e) => setExtractionPrompt(e.target.value)}
                         className="min-h-[80px] max-h-[200px] resize-none"
                         style={{ overflowY: 'auto' }}
+                        placeholder="Example: Extract any follow-up questions or concerns the patient mentioned."
                     />
 
-                    <Label>Variables</Label>
+                    <Label>Information to Collect</Label>
                     <Label className="text-xs text-muted-foreground">
-                        Define each variable you want to extract along with its data type.
+                        Define each piece of information you want to save.
                     </Label>
 
                     {variables.map((v, idx) => (
                         <div key={idx} className="space-y-2 border rounded-md p-2 bg-background">
                             <div className="flex items-center gap-2">
                                 <Input
-                                    placeholder="Variable name"
+                                    placeholder="e.g., follow_up_needed, patient_satisfied"
                                     value={v.name}
                                     onChange={(e) => handleVariableNameChange(idx, e.target.value)}
                                 />
@@ -271,16 +287,16 @@ const EndCallEditForm = ({
                                     value={v.type}
                                     onChange={(e) => handleVariableTypeChange(idx, e.target.value as 'string' | 'number' | 'boolean')}
                                 >
-                                    <option value="string">String</option>
+                                    <option value="string">Text</option>
                                     <option value="number">Number</option>
-                                    <option value="boolean">Boolean</option>
+                                    <option value="boolean">Yes/No</option>
                                 </select>
                                 <Button variant="outline" size="icon" onClick={() => handleRemoveVariable(idx)}>
                                     <Trash2Icon className="w-4 h-4" />
                                 </Button>
                             </div>
                             <Textarea
-                                placeholder="Extraction prompt for this variable"
+                                placeholder="e.g., Did the patient mention any concerns or questions?"
                                 value={v.prompt ?? ''}
                                 onChange={(e) => handleVariablePromptChange(idx, e.target.value)}
                                 className="min-h-[60px] resize-none"
@@ -289,7 +305,7 @@ const EndCallEditForm = ({
                     ))}
 
                     <Button variant="outline" size="sm" className="w-fit" onClick={handleAddVariable}>
-                        <PlusIcon className="w-4 h-4 mr-1" /> Add Variable
+                        <PlusIcon className="w-4 h-4 mr-1" /> Add Information Field
                     </Button>
                 </div>
             )}

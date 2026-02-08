@@ -22,19 +22,19 @@ const NODE_TYPES: NodeTypeConfig[] = [
     {
         type: NodeType.START_CALL,
         label: 'Start Call',
-        description: 'Create a start call node',
+        description: 'How your AI answers the phone. Greet the patient and explain the call\'s purpose.',
         icon: Play
     },
     {
         type: NodeType.AGENT_NODE,
-        label: 'Agent Node',
-        description: 'Create an agent node',
+        label: 'Conversation Step',
+        description: 'Ask questions, gather information, or provide instructions to the patient.',
         icon: Headset
     },
     {
         type: NodeType.END_CALL,
         label: 'End Call',
-        description: 'Create an end call node',
+        description: 'How to professionally close the call. Thank the patient and provide next steps.',
         icon: OctagonX
     }
 ];
@@ -42,8 +42,8 @@ const NODE_TYPES: NodeTypeConfig[] = [
 const GLOBAL_NODE_TYPES: NodeTypeConfig[] = [
     {
         type: NodeType.GLOBAL_NODE,
-        label: 'Global Node',
-        description: 'Create a global node',
+        label: 'Practice-Wide Instructions',
+        description: 'Instructions that apply to every call, like your practice name or office hours.',
         icon: Globe
     }
 ];
@@ -52,7 +52,7 @@ const TRIGGER_NODE_TYPES: NodeTypeConfig[] = [
     {
         type: NodeType.TRIGGER,
         label: 'API Trigger',
-        description: 'Enable API-based call triggering',
+        description: 'Advanced: Let your scheduling system trigger calls automatically.',
         icon: Webhook
     }
 ];
@@ -61,7 +61,7 @@ const WEBHOOK_NODE_TYPES: NodeTypeConfig[] = [
     {
         type: NodeType.WEBHOOK,
         label: 'Webhook',
-        description: 'Send HTTP request after workflow completion',
+        description: 'Advanced: Send call information to your EHR or scheduling system.',
         icon: Link2
     }
 ];

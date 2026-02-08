@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { isOSSMode } from "@/lib/utils";
+import { FieldHelpTooltip } from "@/components/workflow/FieldHelpTooltip";
 
 import { NodeContent } from "./common/NodeContent";
 import { NodeEditDialog } from "./common/NodeEditDialog";
@@ -313,16 +314,17 @@ const StartCallEditForm = ({
         <div className="grid gap-2">
             <Label>Name</Label>
             <Label className="text-xs text-muted-foreground">
-                The name of the agent that will be used to identify the agent in the call logs. It should be short and should identify the step in the call.
+                A short name to identify this step in call logs. Example: &quot;Greeting&quot; or &quot;Introduction&quot;.
             </Label>
             <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Greeting"
             />
 
-            <Label>Prompt</Label>
+            <Label>What to Say</Label>
             <Label className="text-xs text-muted-foreground">
-                Enter the prompt for the agent. This will be used to generate the agent&apos;s response. Prompt engineering&apos;s best practices apply.
+                {"Write how the AI should greet the patient. You can use patient information like {{patient_name}} or {{practice_name}}."}
             </Label>
             <Textarea
                 value={prompt}
@@ -331,13 +333,20 @@ const StartCallEditForm = ({
                 style={{
                     overflowY: 'auto'
                 }}
-                placeholder="Enter a prompt"
+                placeholder="e.g., Hi {{patient_name}}, this is {{practice_name}}. We're calling to remind you about your appointment."
             />
             <div className="flex items-center space-x-2">
                 <Switch id="allow-interrupt" checked={allowInterrupt} onCheckedChange={setAllowInterrupt} />
-                <Label htmlFor="allow-interrupt">Allow Interruption</Label>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="allow-interrupt">Let Patient Interrupt</Label>
+                    <FieldHelpTooltip
+                        title="What happens when enabled?"
+                        description="The patient can ask questions or respond while the AI is speaking. This makes the greeting feel more natural and conversational."
+                        example="If the AI is introducing itself, the patient can interrupt to say 'Who is this?' without waiting."
+                    />
+                </div>
                 <Label className="text-xs text-muted-foreground">
-                    Whether you would like user to be able to interrupt the bot.
+                    Recommended for natural conversations.
                 </Label>
             </div>
             <div className="flex items-center space-x-2">
@@ -346,8 +355,18 @@ const StartCallEditForm = ({
                     checked={addGlobalPrompt}
                     onCheckedChange={setAddGlobalPrompt}
                 />
-                <Label htmlFor="add-global-prompt">
-                    Add Global Prompt
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="add-global-prompt">
+                        Include Practice-Wide Instructions
+                    </Label>
+                    <FieldHelpTooltip
+                        title="What is this?"
+                        description="Automatically includes instructions from your Practice-Wide Instructions node (like practice name, hours, or standard policies) in the greeting."
+                        example="If you have a Practice-Wide node with 'Always be professional and empathetic', that guidance will be included in this greeting."
+                    />
+                </div>
+                <Label className="text-xs text-muted-foreground">
+                    Includes practice name, hours, and policies.
                 </Label>
             </div>
             {!isOSSMode() && (
@@ -401,35 +420,43 @@ const StartCallEditForm = ({
             {/* Variable Extraction Section */}
             <div className="flex items-center space-x-2 pt-2">
                 <Switch id="enable-extraction" checked={extractionEnabled} onCheckedChange={setExtractionEnabled} />
-                <Label htmlFor="enable-extraction">Enable Variable Extraction</Label>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="enable-extraction">Collect Information from Patient</Label>
+                    <FieldHelpTooltip
+                        title="What is this?"
+                        description="Use this to collect specific information during the greeting that you can save or use later. The information gets extracted automatically from the conversation."
+                        example="For outbound calls: collect whether the patient picked up or it went to voicemail, or capture their initial response."
+                    />
+                </div>
                 <Label className="text-xs text-muted-foreground ml-2">
-                    Are there any variables you would like to extract from the conversation?
+                    Save initial responses or confirmation.
                 </Label>
             </div>
 
             {extractionEnabled && (
                 <div className="border rounded-md p-3 mt-2 space-y-2 bg-muted/20">
-                    <Label>Extraction Prompt</Label>
+                    <Label>What to Ask For</Label>
                     <Label className="text-xs text-muted-foreground">
-                        Provide an overall extraction prompt that guides how variables should be extracted from the conversation.
+                        Describe what information you want to collect from this conversation.
                     </Label>
                     <Textarea
                         value={extractionPrompt}
                         onChange={(e) => setExtractionPrompt(e.target.value)}
                         className="min-h-[80px] max-h-[200px] resize-none"
                         style={{ overflowY: 'auto' }}
+                        placeholder="Example: Extract whether the patient confirms the appointment (Yes/No) and if rescheduling, what date they prefer."
                     />
 
-                    <Label>Variables</Label>
+                    <Label>Information to Collect</Label>
                     <Label className="text-xs text-muted-foreground">
-                        Define each variable you want to extract along with its data type.
+                        Define each piece of information you want to save.
                     </Label>
 
                     {variables.map((v, idx) => (
                         <div key={idx} className="space-y-2 border rounded-md p-2 bg-background">
                             <div className="flex items-center gap-2">
                                 <Input
-                                    placeholder="Variable name"
+                                    placeholder="e.g., appointment_confirmed, callback_number"
                                     value={v.name}
                                     onChange={(e) => handleVariableNameChange(idx, e.target.value)}
                                 />
@@ -438,16 +465,16 @@ const StartCallEditForm = ({
                                     value={v.type}
                                     onChange={(e) => handleVariableTypeChange(idx, e.target.value as 'string' | 'number' | 'boolean')}
                                 >
-                                    <option value="string">String</option>
+                                    <option value="string">Text</option>
                                     <option value="number">Number</option>
-                                    <option value="boolean">Boolean</option>
+                                    <option value="boolean">Yes/No</option>
                                 </select>
                                 <Button variant="outline" size="icon" onClick={() => handleRemoveVariable(idx)}>
                                     <Trash2Icon className="w-4 h-4" />
                                 </Button>
                             </div>
                             <Textarea
-                                placeholder="Extraction prompt for this variable"
+                                placeholder="e.g., Did the patient confirm they can make the appointment? (Yes/No/Reschedule)"
                                 value={v.prompt ?? ''}
                                 onChange={(e) => handleVariablePromptChange(idx, e.target.value)}
                                 className="min-h-[60px] resize-none"
@@ -456,7 +483,7 @@ const StartCallEditForm = ({
                     ))}
 
                     <Button variant="outline" size="sm" className="w-fit" onClick={handleAddVariable}>
-                        <PlusIcon className="w-4 h-4 mr-1" /> Add Variable
+                        <PlusIcon className="w-4 h-4 mr-1" /> Add Information Field
                     </Button>
                 </div>
             )}
