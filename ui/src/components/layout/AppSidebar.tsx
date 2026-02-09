@@ -8,24 +8,19 @@ import {
   CircleDollarSign,
   Database,
   FileText,
-  HelpCircle,
   Home,
   Key,
   Megaphone,
-  MessageSquare,
   Phone,
-  Star,
   TrendingUp,
   Workflow,
   Wrench,
-  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 import ThemeToggle from "@/components/ThemeSwitcher";
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -90,52 +85,45 @@ export function AppSidebar() {
   ];
 
   const buildSection = [
-        {
-          title: "Voice Agents",
-          url: "/workflow",
-          icon: Workflow,
-        },
-        {
-          title: "Campaigns",
-          url: "/campaigns",
-          icon: Megaphone,
-        },
-        {
-          title: "Automation",
-          url: "/automation",
-          icon: Zap,
-        },
-        {
-          title: "Models",
-          url: "/model-configurations",
-          icon: Brain,
-        },
-        {
-          title: "Telephony",
-          url: "/telephony-configurations",
-          icon: Phone,
-        },
-        {
-          title: "Tools",
-          url: "/tools",
-          icon: Wrench,
-        },
-        {
-          title: "Files",
-          url: "/files",
-          icon: Database,
-        },
-        // {
-        //   title: "Integrations",
-        //   url: "/integrations",
-        //   icon: Plug,
-        // },
-        {
-          title: "Developers",
-          url: "/api-keys",
-          icon: Key,
-        },
-      ];
+    {
+      title: "Voice Agents",
+      url: "/workflow",
+      icon: Workflow,
+    },
+    {
+      title: "Campaigns",
+      url: "/campaigns",
+      icon: Megaphone,
+    },
+  ];
+
+  const settingsSection = [
+    {
+      title: "Models",
+      url: "/model-configurations",
+      icon: Brain,
+    },
+    {
+      title: "Telephony",
+      url: "/telephony-configurations",
+      icon: Phone,
+    },
+    {
+      title: "Tools",
+      url: "/tools",
+      icon: Wrench,
+    },
+    {
+      title: "Files",
+      url: "/files",
+      icon: Database,
+    },
+    {
+      title: "Developers",
+      url: "/api-keys",
+      icon: Key,
+    },
+  ];
 
   const observeSection = [
     {
@@ -147,11 +135,6 @@ export function AppSidebar() {
       title: "Reports",
       url: "/reports",
       icon: FileText,
-    },
-    {
-      title: "LoopTalk",
-      url: "/looptalk",
-      icon: MessageSquare,
     },
   ];
 
@@ -279,6 +262,22 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
+        {/* SETTINGS Section */}
+        <SidebarGroup className="mt-6">
+          {state === "expanded" && (
+            <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              SETTINGS
+            </SidebarGroupLabel>
+          )}
+          <SidebarMenu>
+            {settingsSection.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarLink item={item} />
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
         {/* OBSERVE Section */}
         <SidebarGroup className="mt-6">
           {state === "expanded" && (
@@ -302,53 +301,6 @@ export function AppSidebar() {
       )}>
         {/* Bottom Actions */}
         <div className="space-y-2">
-          {/* Get Help - for OSS mode */}
-          {provider !== "stack" && (
-            <>
-              {state === "collapsed" ? (
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-full hover:bg-accent hover:text-accent-foreground"
-                        asChild
-                      >
-                        <a
-                          href="https://github.com/dograh-hq/dograh/issues/new/choose"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <HelpCircle className="h-4 w-4" />
-                          <span className="sr-only">Get Help</span>
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p>Get Help</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start hover:bg-accent hover:text-accent-foreground"
-                  asChild
-                >
-                  <a
-                    href="https://github.com/dograh-hq/dograh/issues/new/choose"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <HelpCircle className="h-4 w-4" />
-                    <span className="ml-2">Get Help</span>
-                  </a>
-                </Button>
-              )}
-            </>
-          )}
-
           {/* User Button for Stack Auth - at the bottom */}
           {provider === "stack" && (
             <React.Suspense

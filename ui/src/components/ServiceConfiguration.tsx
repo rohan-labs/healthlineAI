@@ -359,11 +359,13 @@ export default function ServiceConfiguration() {
                                 <SelectValue placeholder="Select provider" />
                             </SelectTrigger>
                             <SelectContent>
-                                {availableProviders.map((provider) => (
-                                    <SelectItem key={provider} value={provider}>
-                                        {provider}
-                                    </SelectItem>
-                                ))}
+                                {availableProviders
+                                    .filter((provider) => provider.toLowerCase() !== 'dograh')
+                                    .map((provider) => (
+                                        <SelectItem key={provider} value={provider}>
+                                            {provider}
+                                        </SelectItem>
+                                    ))}
                             </SelectContent>
                         </Select>
                     </div>
